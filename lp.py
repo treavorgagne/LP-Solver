@@ -6,64 +6,64 @@ def main():
     lines, num_op = get_size()
     dic = np.zeros((lines,num_op))
     dic = parse_file(dic)
-    opt_var_pos = np.zeros((lines,num_op))
-    opt_var_pos[0] = range(num_op)
+
+    coordinate = []
+    for x in range(1,num_op):
+        coordinate.append((0,x))
 
     # is feasible
-    dic,opt_var_pos = isFeasible(dic,opt_var_pos)
+    dic,coordinate = isFeasible(dic,coordinate)
 
     while True:
         isBounded(dic)
-        isOptimal(dic,opt_var_pos)
+        isOptimal(dic,coordinate)
         entering_pos, leaving_pos = Blands_rule(dic)
-        dic,opt_var_pos = pivot(dic, opt_var_pos, entering_pos, leaving_pos)
+        dic,coordinate = pivot(dic, entering_pos, leaving_pos, coordinate)
 
-def isFeasible(dic, opt_var_pos):
+def isFeasible(dic, coordinate):
 
     for col in np.transpose(dic)[0]:
         if col < 0:
             aux_dic = np.zeros(dic.shape)
             aux_dic[0] = 0
             aux_dic[1:] = dic[1:]
-            aux_opt_var_pos = np.zeros(opt_var_pos.shape)
-            aux_opt_var_pos = opt_var_pos
             omega = np.zeros((dic.shape[0],1))
             omega[0] = -1
-            aux_opt_var_pos = np.append(aux_opt_var_pos, omega, axis=1)
             omega[1:] = 1
             aux_dic = np.append(aux_dic, omega, axis=1)
-
+            coordinate.append((0,dic.shape[0]))
             leaving_value = min(i for i in np.transpose(aux_dic)[0][1:])
             leaving_pos = np.where(np.transpose(aux_dic)[0] == leaving_value)[0][0]
-            aux_dic, aux_opt_var_pos = pivot(aux_dic, aux_opt_var_pos, aux_dic.shape[1]-1, leaving_pos)
-
+            aux_dic, coordinate = pivot(aux_dic, aux_dic.shape[1]-1, leaving_pos, coordinate)
+            
             while True:
-                index = np.where(aux_opt_var_pos == -1)[1][0]
+                index = coordinate[dic.shape[1]-1][1]
                 if(aux_dic[0][0] == 0 and all(i <= 0 for i in aux_dic[0][1:]) and aux_dic[0][index] == -1 and all(i >= 0 for i in np.transpose(aux_dic)[0][1:])):
                     aux_dic = np.delete(aux_dic, index, axis=1)
-                    opt_var_pos = np.delete(aux_opt_var_pos, index, axis=1)
-                    constants = dic[0][1:]
-                    for opt_var in range(1,dic.shape[1]):
-                        pos = np.where(opt_var_pos == opt_var)[0][0]
+                    coordinate.pop()
+                    constants = dic[0]
+                    i = 1
+                    for coor in coordinate:
+                        pos = coor[0]
                         if(pos > 0):
-                            temp = aux_dic[pos]
-                            temp = constants[opt_var-1]*temp
-                            i = 0
-                            while i < dic.shape[1]:
-                                aux_dic[0][i] = aux_dic[0][i] + temp[i]
-                                i += 1
+                            temp = constants[i]*aux_dic[pos]
+                            x = 0
+                            while x < dic.shape[1]:
+                                aux_dic[0][x] = aux_dic[0][x] + temp[x]
+                                x += 1
                         else:
-                            aux_dic[0][opt_var] = aux_dic[0][opt_var] + dic[0][opt_var]
-                        dic = aux_dic
+                            aux_dic[0][i] = aux_dic[0][i] + dic[0][i]
+                        i += 1
+                    dic = aux_dic
                     break
                 elif(aux_dic[0][0] != 0 and all(i <= 0 for i in aux_dic[0][1:])):
                     print("infeasible")
                     sys.exit()
                 entering_pos, leaving_pos = Blands_rule(aux_dic)
-                aux_dic, aux_opt_var_pos = pivot(aux_dic, aux_opt_var_pos, entering_pos, leaving_pos)
+                aux_dic, coordinate = pivot(aux_dic, entering_pos, leaving_pos, coordinate)
             break
 
-    return dic, opt_var_pos
+    return dic, coordinate
 
 def isBounded(dic):
     for rows in np.transpose(dic)[1:]:
@@ -72,23 +72,20 @@ def isBounded(dic):
             sys.exit()
     return
 
-def isOptimal(dic,opt_var_pos):
+def isOptimal(dic, coordinate):
     count = 0
     string = ''
-
     if (all(i < 0 for i in dic[0][1:])):
         print "optimal"
         print(str('%7g' %dic[0][0]).strip())
-        for x in range(1,dic.shape[1]):
-            index = np.where(opt_var_pos == x)
-            value = dic[index[0][0]][index[1][0]]
+        for coor in coordinate:
+            value = dic[coor[0]][coor[1]]
             if(value >= 0):
                 string = string + str('%7g' %value).strip() + str(" ")
             else:
                 string = string + str(0) + str(" ")
         print(string)
         sys.exit()
-
     return
 
 def Blands_rule(dic):
@@ -108,18 +105,24 @@ def Blands_rule(dic):
         if(dic[i][entering_pos] < 0):
             leaving[0][i] = (dic[i][0]/(-dic[i][entering_pos]))
         i += 1
+    count = len([i for i in leaving[0] if i > 0])
+    # print(dic)
+    # print("number of var greater than 0: %d" %count)
     leaving_value = min(i for i in leaving[0] if i > 0)
     leaving_pos = np.where(leaving[0] == leaving_value)[0][0]
 
     return entering_pos, leaving_pos
 
-def pivot(dic, opt_var_pos, entering_pos, leaving_pos):    
+def pivot(dic, entering_pos, leaving_pos, coordinate):
 
-    # swap code to track variable positions
-    opt_var_pos[0][0] = opt_var_pos[0][entering_pos]
-    opt_var_pos[0][entering_pos] = opt_var_pos[leaving_pos][0]
-    opt_var_pos[leaving_pos][0] = opt_var_pos[0][0]
-    opt_var_pos[0][0] = 0
+    #code to track optimization variable positions
+    i = 0
+    for coor in coordinate:
+        if((0,entering_pos) == coor):
+            coordinate[i] = (leaving_pos,0)
+        elif ((leaving_pos,0)  == coor): 
+            coordinate[i] = (0,entering_pos)
+        i += 1
 
     # code pivot the dictionary based on the entering and leaving variables 
     value = -dic[leaving_pos][entering_pos]
@@ -142,7 +145,7 @@ def pivot(dic, opt_var_pos, entering_pos, leaving_pos):
                 j += 1
         i += 1
 
-    return dic,opt_var_pos
+    return dic,coordinate
 
 
 def parse_file(dic):
