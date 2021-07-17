@@ -73,7 +73,20 @@ for what they take, return and works:
 2) isFeasible(matrix dic,list coordinate):   
     Takes a dictionary matrix and a coordinate list for the optimization variables. 
     Returns a dictionary matrix and a coordinate list for the optimization variables.
-    Works by taking a matrix dictionary and determines if the dictionary is feasible or not. That is determines if the first columns is entirely greater or equal to zero except for the first row (optimization value). In the case the dictionary is feasible, the dictionary returns the matrix dictionary and coordinate list for the optimization variables unchanged. Otherwise the dictionary performs a auxillary problem by seting the optimization function (first row) to zero and adds another column (omega) to the dictionary to put the dictionary into a feasible position. That is, the auxillary function calls the pivot() and the largest_co_rule() functions to find get a feasible dictionary. The auxillary function stops once the optimization value is once again 0 and the omega row is basic again. In this case the omega row is removed and the optimization function (first row) is recalculated based on the new position of the dictionary and returns newly calculated dictionary and according coordinate list with the new location of the optimization variables. Else the auxillary function runs out of entering pivots in which case the program outputs "infeasible" and exit.
+    Works by taking a matrix dictionary and determines if the dictionary is feasible 
+    or not. That is determines if the first columns is entirely greater or equal to 
+    zero except for the first row (optimization value). In the case the dictionary is 
+    feasible, the dictionary returns the matrix dictionary and coordinate list for the 
+    optimization variables unchanged. Otherwise the dictionary performs a auxillary 
+    problem by seting the optimization function (first row) to zero and adds another 
+    column (omega) to the dictionary to put the dictionary into a feasible position. 
+    That is, the auxillary function calls the pivot() and the largest_co_rule() functions 
+    to find get a feasible dictionary. The auxillary function stops once the optimization 
+    value is once again 0 and the omega row is basic again. In this case the omega row is 
+    removed and the optimization function (first row) is recalculated based on the new 
+    position of the dictionary and returns newly calculated dictionary and according 
+    coordinate list with the new location of the optimization variables. Else the auxillary 
+    function runs out of entering pivots in which case the program outputs "infeasible" and exit.
 
 3) isBounded(matrix dic): 
     Takes a dictionary matrix. 
