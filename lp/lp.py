@@ -1,8 +1,3 @@
-# Student:    Treavor Gagne
-# V#:         V00890643
-# Class:      CSC 445
-# Assignment: Programming Project
-
 import sys
 import numpy as np
 import math 
@@ -230,7 +225,6 @@ def pivot(dic, entering_pos, leaving_pos, coordinate):
     # code pivot the dictionary based on the entering and leaving variables 
     value = -dic[leaving_pos][entering_pos]
     if(value == 0):
-        print(value)
         print("infeasible")
         sys.exit()
     temp = dic[leaving_pos]
